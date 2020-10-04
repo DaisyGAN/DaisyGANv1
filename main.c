@@ -14,6 +14,36 @@
     hardcoded the bot around this specific
     activator.
 */
+/*
+<?php
+    $token = '<BOT TOKEN>';
+    $j = json_decode(file_get_contents("php://input"));
+
+    if(isset($j->{'message'}->{'text'}))
+    {
+        if(strstr($j->{'message'}->{'text'}, "/isdaisy") != FALSE && isset($j->{'message'}->{'reply_to_message'}->{'text'}))
+        {
+            $percent = rtrim(shell_exec('/srv/cfdgan "' . $j->{'message'}->{'reply_to_message'}->{'text'} . '"'), "\n");
+            $chatid = $j->{'message'}->{'chat'}->{'id'};
+            file_get_contents("https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatid . "&text=".urlencode('"'.$j->{'message'}->{'reply_to_message'}->{'text'}).'"'."+is+" . urlencode($percent) . "%25+something+Daisy+(@VXF97)+would+say.");
+            http_response_code(200);
+            exit;
+        }
+
+        if(strstr($j->{'message'}->{'text'}, "/quote") != FALSE)
+        {
+            $file = file("k.txt"); 
+            $line = $file[rand(0, count($file) - 1)];
+            $chatid = $j->{'message'}->{'chat'}->{'id'};
+            file_get_contents("https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatid . "&text=".urlencode($line));
+            http_response_code(200);
+            exit;
+        }
+    }
+
+    http_response_code(200);
+?>
+*/
 
 #pragma GCC diagnostic ignored "-Wunused-result"
 
@@ -69,7 +99,7 @@ float digest[DATA_SIZE][DIGEST_SIZE] = {0};
 
 void saveWeights()
 {
-    FILE* f = fopen("/srv/weights.dat", "w");
+    FILE* f = fopen("weights.dat", "w");
     if(f != NULL)
     {
         for(uint i = 0; i < DIGEST_SIZE; i++)
@@ -120,7 +150,7 @@ void saveWeights()
 
 void loadWeights()
 {
-    FILE* f = fopen("/srv/weights.dat", "r");
+    FILE* f = fopen("weights.dat", "r");
     if(f == NULL)
     {
         printf("!!! no pre-existing weights where found, starting from random initialisation.\n\n\n-----------------\n");
@@ -557,18 +587,8 @@ void trainDataset(const char* file)
         while(fgets(line, DIGEST_SIZE, f) != NULL)
         {
             // normalise line data
-            double high = 0, low = DIGEST_SIZE, mean = 0;
-            uint lc = 0;
-            for(int i = 0; i < DIGEST_SIZE && line[i] != 0x00; i++)
-            {
-                if(line[i] > high){high = line[i];}
-                if(line[i] < low){low = line[i];}
-                mean += line[i];
-                lc++;
-            }
-            mean /= lc;
             for(int i = 0; i < DIGEST_SIZE; i++)
-                digest[index][i] = ( ((double)line[i]) - mean ) / (high-low);
+                digest[index][i] = line[i] == 0 ? 0 : ( ((double)line[i]) / 128.0 ) - 1.0;
 
             index++;
         }
@@ -615,18 +635,8 @@ void consoleAsk()
         fgets(str, DIGEST_SIZE, stdin);
 
         // normalise
-        double high = 0, low = DIGEST_SIZE, mean = 0;
-        uint lc = 0;
-        for(int i = 0; i < DIGEST_SIZE && str[i] != 0x00; i++)
-        {
-            if(str[i] > high){high = str[i];}
-            if(str[i] < low){low = str[i];}
-            mean += str[i];
-            lc++;
-        }
-        mean /= lc;
         for(int i = 0; i < DIGEST_SIZE; i++)
-            nstr[i] = ( ((double)str[i]) - mean ) / (high-low);
+            nstr[i] = str[i] == 0 ? 0 : ( ((double)str[i]) / 128.0 ) - 1.0;
 
         const float r = doDiscriminator(nstr, -2);
         printf("This is %.2f%% (%.2f) Daisy.\n", (r+1.57079632679)*31.830988618, r); //arctan conversion
@@ -637,18 +647,9 @@ float isDaisy(const char* str)
 {
     float nstr[DIGEST_SIZE] = {0};
 
-    double high = 0, low = DIGEST_SIZE, mean = 0;
-    uint lc = 0;
-    for(int i = 0; i < DIGEST_SIZE && str[i] != 0x00; i++)
-    {
-        if(str[i] > high){high = str[i];}
-        if(str[i] < low){low = str[i];}
-        mean += str[i];
-        lc++;
-    }
-    mean /= lc;
+    //normalise
     for(int i = 0; i < DIGEST_SIZE; i++)
-        nstr[i] = ( ((double)str[i]) - mean ) / (high-low);
+        nstr[i] = str[i] == 0 ? 0 : ( ((double)str[i]) / 128.0 ) - 1.0;
 
     const float r = doDiscriminator(nstr, -2);
     return (r+1.57079632679)*31.830988618; //arctan conversion
@@ -688,9 +689,9 @@ int main(int argc, char *argv[])
 
     if(argc == 2)
     {
-        if(strcmp(argv[1], "relearn") == 0)
+        if(strcmp(argv[1], "retrain") == 0)
         {
-            trainDataset("/srv/kds.txt");
+            trainDataset("kds.txt");
             exit(0);
         }
 
@@ -733,7 +734,7 @@ int main(int argc, char *argv[])
         printf("%s\n", str);
 
         // feed generator output into discriminator input, take the error, sigmoid it to 0-1, take the loss, put it back through as the error for the next generation
-        last_error = crossEntropy(sigmoid(doDiscriminator(&output[0], -2)), 0);
+        last_error = crossEntropy(sigmoid(doDiscriminator(&output[0], -2)), 1);
 
         // back prop the generator [defunct method of backprop]
         //backpropGenerator(last_error);
@@ -747,4 +748,3 @@ int main(int argc, char *argv[])
     // done
     return 0;
 }
-
