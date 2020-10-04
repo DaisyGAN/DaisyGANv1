@@ -69,7 +69,7 @@ float digest[DATA_SIZE][DIGEST_SIZE] = {0};
 
 void saveWeights()
 {
-    FILE* f = fopen("weights.dat", "w");
+    FILE* f = fopen("/srv/weights.dat", "w");
     if(f != NULL)
     {
         for(uint i = 0; i < DIGEST_SIZE; i++)
@@ -120,7 +120,7 @@ void saveWeights()
 
 void loadWeights()
 {
-    FILE* f = fopen("weights.dat", "r");
+    FILE* f = fopen("/srv/weights.dat", "r");
     if(f == NULL)
     {
         printf("!!! no pre-existing weights where found, starting from random initialisation.\n\n\n-----------------\n");
@@ -661,7 +661,7 @@ int main(int argc, char *argv[])
     {
         if(strcmp(argv[1], "retrain") == 0)
         {
-            trainDataset("kds.txt");
+            trainDataset("/srv/kds.txt");
             exit(0);
         }
 
