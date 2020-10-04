@@ -1,6 +1,6 @@
 # DaisyGANv1
 
-This is a [Generative adversarial network](https://en.wikipedia.org/wiki/Generative_adversarial_network) which digests character steams.
+This is a [Generative adversarial network](https://en.wikipedia.org/wiki/Generative_adversarial_network) which digests character streams.
 
 The idea here was to take a stream of messages from a specific user. In this case, a user on Telegram called Daisy was chosen due to her unique writing style and quote-like sentences; Daisy is prone to re-using the same unique typo's and miss-spellings in her messages, making her messages easier to identify. Thus it was a fair argument to suggest it would make a good test-case for a neural network to discriminate if messages were for her or not.
 
