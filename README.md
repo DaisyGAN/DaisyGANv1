@@ -10,5 +10,5 @@ The idea you can see is simple, take in a character stream, output a stream.
 
 Generally, this model did not perform well; and the generator failed to produce any intelligible output.
 
-Performance could be increase by only allowing alphanumeric input characters of 0x61 to 0x7A and 0x30 to 0x39; however, I propose the next attempt would yield better results disseminating messages in chunks of lower case words whit a post-process to re-punctuate.
+Performance could be increased by only allowing alphanumeric input characters of 0x61 to 0x7A and 0x30 to 0x39; however, I propose the next attempt would yield better results disseminating messages in chunks of lower case words whit a post-process to re-punctuate.
  
