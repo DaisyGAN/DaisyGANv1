@@ -8,7 +8,7 @@ With most messages being under 256 characters I decided that this was a good cac
 
 The idea you can see is simple, take in a character stream, output a stream.
 
-Generally, this model did not perform well; and the generator failed to produce any intelligible output.
+Generally, this model did not perform well; and the generator failed to produce any intelligible output while the discriminator only just produced an adequate classification.
 
 Performance could be increased by only allowing alphanumeric input characters of 0x61 to 0x7A and 0x30 to 0x39; however, I propose the next attempt would yield better results disseminating messages in chunks of lower case words with a post-process to re-punctuate.
  
