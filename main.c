@@ -40,6 +40,7 @@ uint  _activator = 5;
 uint  _optimiser = 0;
 float _lrate = 0.003;
 float _lmomentum = 0.9;
+float _dropout = 0; //chance of neuron droput 0.3 = 30%
 
 struct
 {
@@ -358,6 +359,13 @@ float crossEntropy(const float predicted, const float expected) //log loss
 
 float doPerceptron(const float* in, ptron* p, const float error_override, const float eo)
 {
+//~~ Perceptron dropout
+    if(_dropout != 0)
+    {
+        if(uRandWeight(0.01, 1) <= _dropout)
+            return 0;
+    }
+    
 //~~ Query perceptron
     //Sum inputs mutliplied by weights
     float ro = 0;
