@@ -552,7 +552,6 @@ void trainDataset(const char* file)
     if(f)
     {
         char line[DIGEST_SIZE];
-        float nline[DIGEST_SIZE];
         uint index = 0;
         while(fgets(line, DIGEST_SIZE, f) != NULL)
         {
