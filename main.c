@@ -25,6 +25,8 @@
 #include <math.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 #define uint uint32_t
 
@@ -69,7 +71,7 @@ float digest[DATA_SIZE][DIGEST_SIZE] = {0};
 
 void saveWeights()
 {
-    FILE* f = fopen("/srv/weights.dat", "w");
+    FILE* f = fopen("weights.dat", "w");
     if(f != NULL)
     {
         for(uint i = 0; i < DIGEST_SIZE; i++)
@@ -120,7 +122,7 @@ void saveWeights()
 
 void loadWeights()
 {
-    FILE* f = fopen("/srv/weights.dat", "r");
+    FILE* f = fopen("weights.dat", "r");
     if(f == NULL)
     {
         printf("!!! no pre-existing weights where found, starting from random initialisation.\n\n\n-----------------\n");
@@ -180,6 +182,25 @@ float qRandWeight(const float min, const float max)
         srand(time(0));
         ls = time(0) + 33;
     }
+    float pr = 0;
+    while(pr == 0) //never return 0
+    {
+        const float rv = (float)rand();
+        if(rv == 0)
+            return min;
+        const float rv2 = ( (rv / RAND_MAX) * (max-min) ) + min;
+        pr = roundf(rv2 * 100) / 100; // two decimals of precision
+    }
+    return pr;
+}
+
+float uRandWeight(const float min, const float max)
+{
+    int f = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
+    uint s = 0;
+    ssize_t result = read(f, &s, 4);
+    srand(s);
+    close(f);
     float pr = 0;
     while(pr == 0) //never return 0
     {
@@ -552,6 +573,7 @@ void trainDataset(const char* file)
     if(f)
     {
         char line[DIGEST_SIZE];
+        float nline[DIGEST_SIZE];
         uint index = 0;
         while(fgets(line, DIGEST_SIZE, f) != NULL)
         {
@@ -577,7 +599,7 @@ void trainDataset(const char* file)
             // train discriminator on generator
             float input[DIGEST_SIZE] = {0};
             for(int i = 0; i < DIGEST_SIZE; i++)
-                input[i] = qRandWeight(-1, 1);
+                input[i] = uRandWeight(-1, 1);
             float output[DIGEST_SIZE] = {0};
             doGenerator(0, &input[0], &output[0]);
             doDiscriminator(&output[0], 0);
@@ -624,6 +646,16 @@ float isDaisy(const char* str)
     return (r+1.57079632679)*31.830988618; //arctan conversion
 }
 
+float rndDaisy()
+{
+    float nstr[DIGEST_SIZE] = {0};
+    for(int i = 0; i < DIGEST_SIZE; i++)
+        nstr[i] = uRandWeight(-1, 1);
+
+    const float r = doDiscriminator(nstr, -2);
+    return (r+1.57079632679)*31.830988618; //arctan conversion
+}
+
 
 //*************************************
 // program entry point
@@ -660,7 +692,7 @@ int main(int argc, char *argv[])
     {
         if(strcmp(argv[1], "retrain") == 0)
         {
-            trainDataset("/srv/kds.txt");
+            trainDataset("kds.txt");
             exit(0);
         }
 
@@ -668,6 +700,21 @@ int main(int argc, char *argv[])
 
         if(strcmp(argv[1], "ask") == 0)
             consoleAsk();
+        
+        if(strcmp(argv[1], "rnd") == 0)
+        {
+            printf("> %.2f\n", rndDaisy());
+            exit(0);
+        }
+
+        if(strcmp(argv[1], "rndloop") == 0)
+        {
+            while(1)
+            {
+                printf("> %.2f\n", rndDaisy());
+                //usleep(100000);
+            }
+        }
 
         char in[DIGEST_SIZE] = {0};
         snprintf(in, DIGEST_SIZE, "%s", argv[1]);
@@ -686,7 +733,7 @@ int main(int argc, char *argv[])
         // random generator input
         float input[DIGEST_SIZE] = {0};
         for(int i = 0; i < DIGEST_SIZE; i++)
-            input[i] = qRandWeight(-1, 1);
+            input[i] = uRandWeight(-1, 1);
 
         // do generator
         float output[DIGEST_SIZE] = {0};
@@ -717,3 +764,4 @@ int main(int argc, char *argv[])
     // done
     return 0;
 }
+
