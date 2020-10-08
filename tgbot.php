@@ -3,7 +3,7 @@
     $j = json_decode(file_get_contents("php://input"));
     if(isset($j->{'message'}->{'text'}))
     {
-        if(strstr($j->{'message'}->{'text'}, "/isdaisy") != FALSE && isset($j->{'message'}->{'reply_to_message'}->{'text'}))
+        if(strpos($j->{'message'}->{'text'}, "/isdaisy") !== FALSE && isset($j->{'message'}->{'reply_to_message'}->{'text'}))
         {
             $percent = rtrim(shell_exec('/srv/cfdgan "' . $j->{'message'}->{'reply_to_message'}->{'text'} . '"'), "\n");
             $chatid = $j->{'message'}->{'chat'}->{'id'};
@@ -11,7 +11,7 @@
             http_response_code(200);
             exit;
         }
-        if(strstr($j->{'message'}->{'text'}, "/quote") != FALSE)
+        if(strpos($j->{'message'}->{'text'}, "/quote") !== FALSE)
         {
             $file = file("kds.txt"); 
             $line = $file[rand(0, count($file) - 1)];
