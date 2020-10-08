@@ -13,10 +13,10 @@
         }
         if(strstr($j->{'message'}->{'text'}, "/quote") != FALSE)
         {
-            $file = file("k.txt"); 
+            $file = file("kds.txt"); 
             $line = $file[rand(0, count($file) - 1)];
             $chatid = $j->{'message'}->{'chat'}->{'id'};
-            file_get_contents("https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatid . "&text=".urlencode($line));
+            file_get_contents("https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatid . "&parse_mode=HTML&text=" . urlencode("<a href=\"tg://user?id=1155563040\">Daisy:</a> ") .urlencode($line));
             http_response_code(200);
             exit;
         }
