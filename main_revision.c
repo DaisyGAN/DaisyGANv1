@@ -2,7 +2,17 @@
 --------------------------------------------------
     91f7d09794d8da29f028e77df49d4907
 --------------------------------------------------
-    DaisyGANv1 Revision Attempt
+    DaisyGAN
+
+    This is kind of like my trading bots but
+    for the weight_override was substituted
+    for error_override as to feed back in a
+    custom error value into the backprop.
+
+    Only the arctan and lecun_tanh has good
+    results, more so arctan hence having
+    hardcoded the bot around this specific
+    activator.
 */
 /*
 <?php
@@ -461,7 +471,7 @@ float doPerceptron(const float* in, ptron* p, const float error_override, const 
 //~~ Teach perceptron
     if(eo != -2 || error_override != 0)
     {
-        const float error = error_override == 0 ? eo - ro : error_override; // error gradient
+        const float error = error_override == 0 ? eo - ro : error_override - ro; // error gradient
         for(uint i = 0; i < p->weights; i++)
         {
             // Regular Gradient Descent
@@ -797,7 +807,7 @@ int main(int argc, char *argv[])
 
         // do generator
         float output[DIGEST_SIZE] = {0};
-        doGenerator(last_error, &input[0], &output[0]);
+        doGenerator(last_error * 0.3, &input[0], &output[0]);
 
         // convert output to string
         char str[DIGEST_SIZE+1] = {0};
@@ -810,7 +820,7 @@ int main(int argc, char *argv[])
         printf("%s\n", str);
 
         // feed generator output into discriminator input, take the error, sigmoid it to 0-1, take the loss, put it back through as the error for the next generation
-        last_error = sigmoid(doDiscriminator(&output[0], -2));
+        last_error = crossEntropy(sigmoid(3.141592654 - (doDiscriminator(&output[0], -2) + 1.57079632679)), 1);
 
         // back prop the generator [defunct method of backprop]
         //backpropGenerator(last_error);
