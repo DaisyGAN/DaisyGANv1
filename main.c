@@ -427,7 +427,7 @@ float doPerceptron(const float* in, ptron* p, const float error_override, const 
             }
             
             // Nesterov (NAG) momentum
-            if(_optimiser == 2)
+            if(_optimiser == 2) //pretty sure I got this wrong
             {
                 const float g = error * in[i] * _lrate;
                 const float l = p->data[i] + p->momentum[i];
@@ -448,7 +448,7 @@ float doPerceptron(const float* in, ptron* p, const float error_override, const 
         }
         
         // Nesterov (NAG) momentum
-        if(_optimiser == 2)
+        if(_optimiser == 2) //pretty sure I got this wrong
         {
             p->bias_momentum = _lmomentum * p->bias_momentum + (error * _lrate) * (p->bias + p->bias_momentum);
             p->bias += p->bias_momentum;
@@ -518,7 +518,7 @@ void doSGD(float* weight, float* momentum, const float error)
     }
     
     // Nesterov (NAG) momentum
-    if(_optimiser == 2)
+    if(_optimiser == 2) //pretty sure I got this wrong
     {
         momentum[0] = _lmomentum * momentum[0] + (error * _lrate) * (weight[0] + momentum[0]);
         weight[0] += momentum[0];
