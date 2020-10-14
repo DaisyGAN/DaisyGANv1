@@ -497,75 +497,6 @@ void doGenerator(const float error, const float* input, float* output)
         output[i] = doPerceptron(&o2[0], &g3[i], error, -2);
 }
 
-/*
---------------------------------------------------
-    Defunct Backprop Method Start
---------------------------------------------------
-*/
-void doSGD(float* weight, float* momentum, const float error)
-{
-    // Regular Gradient Descent
-    if(_optimiser == 0)
-    {
-        weight[0] += error * _lrate;
-    }
-
-    // Regular Momentum
-    if(_optimiser == 1)
-    {
-        momentum[0] = _lmomentum * momentum[0] + (error * _lrate);
-        weight[0] += *momentum;
-    }
-    
-    // Nesterov (NAG) momentum
-    if(_optimiser == 2) //pretty sure I got this wrong
-    {
-        momentum[0] = _lmomentum * momentum[0] + (error * _lrate) * (weight[0] + momentum[0]);
-        weight[0] += momentum[0];
-    }
-}
-
-void backpropGenerator(const float error)
-{
-    // layer one, inputs (fc)
-    for(int i = 0; i < DIGEST_SIZE; i++)
-    {
-        const float layer_error = (1-(1/i))*error;
-
-        for(int j = 0; j < g1[i].weights; j++)
-            doSGD(&g1[i].data[j], &g1[i].momentum[j], layer_error);
-        
-        doSGD(&g1[i].bias, &g1[i].bias_momentum, layer_error);
-    }
-
-    // layer two, hidden (fc expansion)
-    for(int i = 0; i < HIDDEN_SIZE; i++)
-    {
-        const float layer_error = (1-(1/i))*error;
-
-        for(int j = 0; j < g2[i].weights; j++)
-            doSGD(&g2[i].data[j], &g2[i].momentum[j], layer_error);
-        
-        doSGD(&g2[i].bias, &g2[i].bias_momentum, layer_error);
-    }
-    
-    // layer three, output (fc compression)
-    for(int i = 0; i < DIGEST_SIZE; i++)
-    {
-        const float layer_error = (1-(1/i))*error;
-
-        for(int j = 0; j < g3[i].weights; j++)
-            doSGD(&g3[i].data[j], &g3[i].momentum[j], layer_error);
-        
-        doSGD(&g3[i].bias, &g3[i].bias_momentum, layer_error);
-    }
-}
-/*
---------------------------------------------------
-    Defunct Backprop Method End
---------------------------------------------------
-*/
-
 float rmseDiscriminator()
 {
     float squaremean = 0;
@@ -763,9 +694,6 @@ int main(int argc, char *argv[])
 
         // feed generator output into discriminator input, take the error, sigmoid it to 0-1, take the loss, put it back through as the error for the next generation
         last_error = crossEntropy(sigmoid(doDiscriminator(&output[0], -2)), 1);
-
-        // back prop the generator [defunct method of backprop]
-        //backpropGenerator(last_error);
 
         // output error
         printf("[%u]ERROR: %.2f\n\n", index, last_error);
